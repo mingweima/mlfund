@@ -1,0 +1,14 @@
+pandas==0.24.0
+numpy
+wrds
+matplotlib
+scipy
+tqdm
+bokeh
+seaborn
+mysql-connector-python>=8.0.0
+PyYAML>=5.0.0
+sklearn
+
+
+

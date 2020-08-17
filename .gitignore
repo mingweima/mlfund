@@ -1,0 +1,14 @@
+.idea/
+.DS_Store
+.ipynb_checkpoints
+*.pyc
+*.xml
+*.iml
+/venv
+
+!/data_all/
+run.ipynb
+test_yanlong.ipynb
+yanlong-ccm.ipynb
+yanlong_function2.ipynb
+*.ipynb
