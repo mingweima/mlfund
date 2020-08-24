@@ -3,7 +3,7 @@ import os
 
 from pandas.errors import DtypeWarning
 
-from global_settings import DATA_FOLDER
+from val.vutils.global_settings import DATA_FOLDER
 import warnings
 
 

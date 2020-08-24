@@ -1,4 +1,4 @@
-from global_settings import ccm_raw, icm_raw
+from val.vutils.global_settings import ccm_raw, icm_raw
 import numpy as np
 import pandas as pd
 

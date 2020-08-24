@@ -18,7 +18,7 @@ else:
     DATA_FOLDER = '/Users/mingyu/Desktop/data'
     SOURCE_FOLDER = '/Users/mingyu/Desktop/ml_val'
 
-LOOKUP_FOLDER = os.path.join(SOURCE_FOLDER, 'lookup')
+LOOKUP_FOLDER = os.path.join(SOURCE_FOLDER, '../../lookup')
 CONFIG_FOLDER = os.path.join(SOURCE_FOLDER, 'config')
 
 
