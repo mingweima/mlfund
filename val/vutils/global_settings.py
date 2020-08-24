@@ -2,6 +2,7 @@ from global_tools import clean_sp500, clean_ccm, clean_icm, clean_link, clean_ff
 import pandas as pd
 import os
 
+#TODO: edit the SOURCE_FOLDER
 user = os.getcwd()
 # assert user in ['/Users/mmw/Documents/GitHub/ml_val', 'E:\\Git\\ml_val', '/Users/mingyu/Desktop/ml_val']
 
