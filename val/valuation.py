@@ -1,4 +1,4 @@
-from val.vutils.global_settings import CONFIG_FOLDER, groups, PERMNO, SIC1, SIC2, GIC1, GIC2
+from val.vutils.global_settings import CONFIG_FOLDER, groups, PERMNO
 from val.vutils.load_data import construct_daily, load_beta, load_ibes, load_comp, load_adjs, load_multiple, load_partial_dsf
 from val.val_data import fetch_beta, hist, ibes, extrapolate, ValError
 from val.val_model import DCF, Multiple
@@ -26,7 +26,7 @@ def group_proc(mtype, buy_date, ptype, group):
     return permno_group, sic_group, gic_group, pv_group
 
 
-def construct_portfolio(buy_date, ptype, mtype, conn, multip=16):
+def portfolio_valuation(buy_date, ptype, mtype, conn, multip=16):
     assert inds in ['none', 'sic1', 'sic2', 'gic1', 'gic2'], 'Invalid industrial type'
     assert ptype in ['hist', 'ibes', 'extrapolate'], 'Invalid predictor type'
     assert mtype in ['dcf', 'PE', 'PB'], 'Invalid model type'
@@ -62,15 +62,17 @@ def construct_portfolio(buy_date, ptype, mtype, conn, multip=16):
     permno, sic, gic, pv, prc = permno[arg], sic[arg], gic[arg], pv[arg], np.array(daily_df['prc'])
     norm_pv = np.divide(pv, prc)
 
-    # permno long/short
-    #ls_func = industrial_ls if not inds == 'none' else base_ls
-    #(long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic) = ls_func(norm_pv, permno, sic, gic)
-    #long_permno, short_permno = long_permno.tolist(), short_permno.tolist()
-    #long_sic, short_sic = long_sic.tolist(), short_sic.tolist()
-    #long_gic, short_gic = long_gic.tolist(), short_gic.tolist()
-
-    #return (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic)
     return permno, sic, gic, pv, prc, norm_pv
+
+
+def _load_group_data(group):
+    beta_group = load_beta(group).set_index(['PERMNO'])
+    comp_group = load_comp(group).set_index(['gvkey'])
+    ibes_group = load_ibes(group).set_index(['TICKER'])
+    adjs = load_adjs().set_index(['TICKER'])
+
+    return beta_group, comp_group, ibes_group, adjs
+
 
 def dcf_valuation(buy_date, permno_group, group, ptype):
     beta_group, comp_group, ibes_group, adjs = _load_group_data(group)
@@ -150,58 +152,6 @@ def multi_valuation(buy_date, permno_group, group, ptype, mtype):
     pv = Multiple(comp_1, comp_2, pct, median_multiple)
 
     return permno, sic, gic, pv
-
-
-def base_ls(norm_pv, permno, sic, gic):
-    args, drop_len = np.argsort(norm_pv), int(len(permno) * drop)
-    args = args[drop_len: -drop_len] if drop_len != 0 else args
-    keep_len = int(len(args) * keep)
-
-    if keep_len != 0:
-        long_permno, short_permno = permno[args[-keep_len:]], permno[args[:keep_len]]
-        long_sic, short_sic = sic[args[-keep_len:]], sic[args[:keep_len]]
-        long_gic, short_gic = gic[args[-keep_len:]], gic[args[:keep_len]]
-    else:
-        long_permno, short_permno = np.array([]), np.array([])
-        long_sic, short_sic = np.array([]), np.array([])
-        long_gic, short_gic = np.array([]), np.array([])
-
-    return (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic)
-
-
-def industrial_ls(norm_pv, permno, sic, gic):
-    long_permno, short_permno = np.array([]), np.array([])
-    long_sic, short_sic = np.array([]), np.array([])
-    long_gic, short_gic = np.array([]), np.array([])
-
-    if inds == 'sic1':
-        (cat, init) = (SIC1, sic.astype('<U1'))
-    elif inds == 'sic2':
-        (cat, init) = (SIC2, sic.astype('<U2'))
-    elif inds == 'gic1':
-        (cat, init) = (GIC1, gic.astype('<U4'))
-    else:
-        (cat, init) = (GIC2, gic.astype('<U6'))
-
-    for _ in cat:
-        permno_, norm_pv_, sic_, gic_ = permno[init == _], norm_pv[init == _], sic[init == _], gic[init == _]
-        zip_long_, zip_short_ = base_ls(norm_pv_, permno_, sic_, gic_)
-        (long_permno_, long_sic_, long_gic_), (short_permno_, short_sic_, short_gic_) = zip_long_, zip_short_
-        long_permno = np.append(long_permno, long_permno_); short_permno = np.append(short_permno, short_permno_)
-        long_sic = np.append(long_sic, long_sic_); short_sic = np.append(short_sic, short_sic_)
-        long_gic = np.append(long_gic, long_gic_); short_gic = np.append(short_gic, short_gic_)
-
-    return (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic)
-
-
-def _load_group_data(group):
-    beta_group = load_beta(group).set_index(['PERMNO'])
-    comp_group = load_comp(group).set_index(['gvkey'])
-    ibes_group = load_ibes(group).set_index(['TICKER'])
-    adjs = load_adjs().set_index(['TICKER'])
-
-    return beta_group, comp_group, ibes_group, adjs
-
 
 # from global_settings import sp500_full
 # def construct_portfolio(business_day, lag=5):

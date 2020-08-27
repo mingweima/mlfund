@@ -1,4 +1,4 @@
-from global_tools import clean_sp500, clean_ccm, clean_icm, clean_link, clean_ff
+from val.vutils.global_tools import clean_sp500, clean_ccm, clean_icm, clean_link, clean_ff
 import pandas as pd
 import os
 
@@ -19,8 +19,8 @@ else:
     DATA_FOLDER = '/Users/mingyu/Desktop/data'
     SOURCE_FOLDER = '/Users/mingyu/Desktop/ml_val'
 
-LOOKUP_FOLDER = os.path.join(SOURCE_FOLDER, '../../lookup')
-CONFIG_FOLDER = os.path.join(SOURCE_FOLDER, 'config')
+LOOKUP_FOLDER = os.path.join(SOURCE_FOLDER, 'lookup')
+CONFIG_FOLDER = os.path.join(SOURCE_FOLDER, 'cfgs')
 
 
 # SP500
