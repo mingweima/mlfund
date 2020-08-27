@@ -63,14 +63,14 @@ def construct_portfolio(buy_date, ptype, mtype, conn, multip=16):
     norm_pv = np.divide(pv, prc)
 
     # permno long/short
-    ls_func = industrial_ls if not inds == 'none' else base_ls
-    (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic) = ls_func(norm_pv, permno, sic, gic)
-    long_permno, short_permno = long_permno.tolist(), short_permno.tolist()
-    long_sic, short_sic = long_sic.tolist(), short_sic.tolist()
-    long_gic, short_gic = long_gic.tolist(), short_gic.tolist()
+    #ls_func = industrial_ls if not inds == 'none' else base_ls
+    #(long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic) = ls_func(norm_pv, permno, sic, gic)
+    #long_permno, short_permno = long_permno.tolist(), short_permno.tolist()
+    #long_sic, short_sic = long_sic.tolist(), short_sic.tolist()
+    #long_gic, short_gic = long_gic.tolist(), short_gic.tolist()
 
-    return (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic)
-
+    #return (long_permno, long_sic, long_gic), (short_permno, short_sic, short_gic)
+    return permno, sic, gic, pv, prc, norm_pv
 
 def dcf_valuation(buy_date, permno_group, group, ptype):
     beta_group, comp_group, ibes_group, adjs = _load_group_data(group)

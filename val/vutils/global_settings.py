@@ -9,9 +9,9 @@ user = os.getcwd()
 if user == '/Users/mmw/Documents/GitHub/ml_val':
     DATA_FOLDER = '/Volumes/T5/data_all'
     SOURCE_FOLDER = '/Users/mmw/Documents/GitHub/ml_val'
-elif user == 'E:\\Git\\ml_val':
+elif user == 'E:\\Git\\mlfund':
     DATA_FOLDER = 'E:\\Git\\data'
-    SOURCE_FOLDER = 'E:\\Git\\ml_val'
+    SOURCE_FOLDER = 'E:\\Git\\mlfund'
 elif user == '/home/mma3/ml_val':
     DATA_FOLDER = '/home/mma3/mvdata'
     SOURCE_FOLDER = '/home/mma3/ml_val'
