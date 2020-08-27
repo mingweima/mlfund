@@ -1,5 +1,6 @@
-from val.vutils.global_settings import CONFIG_FOLDER, groups, PERMNO
-from val.vutils.load_data import construct_daily, load_beta, load_ibes, load_comp, load_adjs, load_multiple, load_partial_dsf
+from val.vutils.global_settings import CONFIG_FOLDER, groups
+from val.vutils.load_data import construct_daily, load_beta, load_ibes, load_comp, load_adjs, load_multiple, \
+    load_partial_dsf
 from val.val_data import fetch_beta, hist, ibes, extrapolate, ValError
 from val.val_model import DCF, Multiple
 import numpy as np
@@ -17,8 +18,15 @@ with open(os.path.join(CONFIG_FOLDER, 'portfolio.json'), 'rb') as handle:
     inds = params['inds']
 
 
-def group_proc(mtype, buy_date, ptype, group):
-    permno_group = [_ for _ in PERMNO if _[:2] == group]
+def valuation(pred_df, mtype):
+    for buy_date in pred_df['date']:
+        permno_ls = list(pred_df.loc[pred_df['date'] == buy_date]['PERMNO'])
+
+
+# clarification: group is a string, from '10' to '93' (splitted dsf/comp group numbers)
+# whereas permno_group contains all the PERMNOs a specific dsf group has
+def group_proc(mtype, buy_date, ptype, group, permno_group):
+    # permno_group = [_ for _ in PERMNO if _[:2] == group]
     if mtype == 'dcf':
         permno_group, sic_group, gic_group, pv_group = dcf_valuation(buy_date, permno_group, group, ptype)
     else:
@@ -26,7 +34,7 @@ def group_proc(mtype, buy_date, ptype, group):
     return permno_group, sic_group, gic_group, pv_group
 
 
-def portfolio_valuation(buy_date, ptype, mtype, conn, multip=16):
+def portfolio_valuation(buy_date, permno_group, ptype, mtype, conn, multip=16):
     assert inds in ['none', 'sic1', 'sic2', 'gic1', 'gic2'], 'Invalid industrial type'
     assert ptype in ['hist', 'ibes', 'extrapolate'], 'Invalid predictor type'
     assert mtype in ['dcf', 'PE', 'PB'], 'Invalid model type'
@@ -36,7 +44,7 @@ def portfolio_valuation(buy_date, ptype, mtype, conn, multip=16):
 
     if multip == 1:
         for group in tqdm(groups):
-            permno_group, sic_group, gic_group, pv_group = group_proc(mtype, buy_date, ptype, group)
+            permno_group, sic_group, gic_group, pv_group = group_proc(mtype, buy_date, ptype, group, permno_group)
             permno = np.concatenate([permno, permno_group])
             sic = np.concatenate([sic, sic_group])
             gic = np.concatenate([gic, gic_group])
@@ -91,8 +99,10 @@ def dcf_valuation(buy_date, permno_group, group, ptype):
             b_mkt = fetch_beta(buy_date, beta_group, p)
 
             if not (np.isnan(eps_0_) or np.isnan(eps_1_) or np.isnan(eps_2_) or np.isnan(eps_3_)):
-                eps_0 = np.append(eps_0, eps_0_); eps_1 = np.append(eps_1, eps_1_)
-                eps_2 = np.append(eps_2, eps_2_); eps_3 = np.append(eps_3, eps_3_)
+                eps_0 = np.append(eps_0, eps_0_)
+                eps_1 = np.append(eps_1, eps_1_)
+                eps_2 = np.append(eps_2, eps_2_)
+                eps_3 = np.append(eps_3, eps_3_)
                 pct, beta = np.append(pct, int((buy_date - end_date).days) / 365), np.append(beta, b_mkt[0])
                 sic, gic, permno = np.append(sic, sic_), np.append(gic, gic_), np.append(permno, p)
 
@@ -130,7 +140,7 @@ def multi_valuation(buy_date, permno_group, group, ptype, mtype):
             elif (ptype == 'ibes') & (mtype == 'PE'):
                 metric = 'epsfx'
                 comp_func, data_group = [ibes, [comp_group, ibes_group, adjs]]
-            else:  #dtype == 'ibes' & mtype =='PB'
+            else:  # dtype == 'ibes' & mtype =='PB'
                 metric = 'bkvlps'
                 comp_func, data_group = [ibes, [comp_group, ibes_group, adjs]]
             comp_0_, comp_1_, comp_2_, comp_3_, sic_, gic_, end_date = comp_func(buy_date, data_group, p, metric)
@@ -143,7 +153,8 @@ def multi_valuation(buy_date, permno_group, group, ptype, mtype):
 
             if not (np.isnan(comp_1_) or np.isnan(comp_2_)):
                 median_multiple = np.append(median_multiple, median_variable)
-                comp_1 = np.append(comp_1, comp_1_); comp_2 = np.append(comp_2, comp_2_)
+                comp_1 = np.append(comp_1, comp_1_)
+                comp_2 = np.append(comp_2, comp_2_)
                 pct = np.append(pct, int((buy_date - end_date).days) / 365)
                 sic, gic, permno = np.append(sic, sic_), np.append(gic, gic_), np.append(permno, p)
         except (KeyError, ValError) as Error:
